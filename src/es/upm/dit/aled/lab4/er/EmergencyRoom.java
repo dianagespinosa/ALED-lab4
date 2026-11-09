@@ -122,8 +122,8 @@ public class EmergencyRoom {
 	 * 
 	 * @param patient The Patient.
 	 */
-	public void admit(Patient patient) {
-		// TODO
+	public void admit(Patient patient) { //Arranca la hebra del paciente en segundo plano
+		patient.start(); //Activa tareas en paralelo
 	}
 
 	/**
@@ -132,7 +132,14 @@ public class EmergencyRoom {
 	 * @param patient The Patient.
 	 */
 	public void waitForDischarge(Patient patient) {
-		// TODO
+		try {
+			// .join() PAUSA la hebra principal en esta línea.
+            // Es la "espera": no permite avanzar el código hasta que la hebra
+            // de este paciente haya terminado por completo su ejecución.
+			patient.join();
+		} catch (InterruptedException e) {
+			System.out.println("La espera de alta del paciente fue interrumpida.");
+		}
 	}
 
 }

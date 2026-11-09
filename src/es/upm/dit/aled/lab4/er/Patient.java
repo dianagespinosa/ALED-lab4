@@ -130,7 +130,17 @@ public class Patient extends Thread {
 	 * movement is animated by the GUI and the index is increased by one.
 	 */
 	private void advanceProtocol() {
-		// TODO
+		//Obtener transfer actual
+		Transfer transferActual = this.getProtocol().get(indexProtocol);
+		
+		//Llamamos a la animación
+		EmergencyRoomGUI.getInstance().animateTransfer(this, transferActual);
+		
+		//Actualizar ubicación
+		this.setLocation(transferActual.getTo());
+		
+		//Avanza el índice de protocolo
+		indexProtocol++;
 	}
 
 	/**
@@ -139,7 +149,11 @@ public class Patient extends Thread {
 	 * Area.
 	 */
 	private void attendedAtLocation() {
-		// TODO
+		try {
+			Thread.sleep(this.getLocation().getTime());
+		} catch (InterruptedException e) {
+			System.out.println("El paciente no ha podido ser atendido en este área");
+		}
 	}
 
 	/**
@@ -149,7 +163,27 @@ public class Patient extends Thread {
 	 */
 	@Override
 	public void run() {
-		// TODO
+		
+		// Traza al ser admitido/empezar
+        System.out.println("--> Paciente " + this.getNumber() + " comienza atención en: " + this.getLocation().getName());
+		
+		while(indexProtocol < protocol.size()) {
+			// Traza antes/después de ser atendido
+			attendedAtLocation();
+			
+			//Traza antes de moverse
+			System.out.println("Paciente " + this.getNumber() + " se traslada desde " + this.getLocation().getName());
+			advanceProtocol();
+			
+			System.out.println("Paciente " + this.getNumber() + " ha llegado a: " + this.getLocation().getName());
+		}
+		
+		//Atención en su última localización
+		attendedAtLocation();
+		
+		// Traza al ser dado de alta / eliminado de la pantalla
+        System.out.println("<-- Paciente " + this.getNumber() + " ha finalizado su protocolo y se le da de alta.");
+		EmergencyRoomGUI.getInstance().removePatient(this);
 	}
 
 }

@@ -115,8 +115,18 @@ public class FASTAReaderThreads {
 	 *         pattern in the data.
 	 */
 	public List<Integer> search(byte[] pattern) {
-		// TODO
-		return null;
+		//Inicialización de la lista
+		List<Integer> encontradas = new ArrayList<>();
+		
+		//Obtener número de procesadores dsel ordenador
+		int cores = Runtime.getRuntime().availableProcessors();
+		
+		//Crear un ExecutorService con un número fijo de hebras
+		ExecutorService executor = Executors.newFixedThreadPool(cores);
+		
+		//Cerrar ExecutorService
+		executor.shutdown();
+		return encontradas;
 	}
 
 	public static void main(String[] args) {

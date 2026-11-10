@@ -31,7 +31,10 @@ public class FASTASearchCallable implements Callable<List<Integer>> {
 	 * @param pattern The pattern to be found.
 	 */
 	public FASTASearchCallable(FASTAReaderThreads reader, int lo, int hi, byte[] pattern) {
-		// TODO
+		this.reader = reader;
+		this.lo = lo;
+		this.hi = hi;
+		this.pattern = pattern;
 	}
 
 	/**
@@ -44,8 +47,17 @@ public class FASTASearchCallable implements Callable<List<Integer>> {
 	 */
 	@Override
 	public List<Integer> call() throws Exception {
-		// TODO
-		return null;
+		//Inicialización de la lista
+		List<Integer> coincidencias = new ArrayList<>();
+		int position = lo;
+		
+		while(position < hi) {
+		if(this.compare(pattern, position)) {
+			coincidencias.add(position);
+		}
+		position++;
+		}
+		return coincidencias;
 	}
 
 	/*

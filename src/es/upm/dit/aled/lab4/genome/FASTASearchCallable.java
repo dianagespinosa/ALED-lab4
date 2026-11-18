@@ -13,6 +13,7 @@ import java.util.concurrent.Callable;
  *
  */
 public class FASTASearchCallable implements Callable<List<Integer>> {
+	//Callable<List<Integer>>: obliga a que esa clase tenga un único método principal de ejecución, que siempre se llama exactamente call()
 
 	private FASTAReaderThreads reader;
 	private int lo;
@@ -45,6 +46,13 @@ public class FASTASearchCallable implements Callable<List<Integer>> {
 	 * @return All the positions of the first character of every occurrence of the
 	 *         pattern in the segment of content to be searched.
 	 */
+	
+	/**
+     * PUNTO DE ENTRADA DE LA TAREA:
+     * Cuando desde FASTAReaderThreads llamemos a executor.submit(task), Java buscará
+     * y ejecutará automáticamente este método call() en un hilo secundario[cite: 1]
+     * (igual que .start() llama automáticamente a .run() en un Thread normal).
+     */
 	@Override
 	public List<Integer> call() throws Exception {
 		//Inicialización de la lista
@@ -57,6 +65,8 @@ public class FASTASearchCallable implements Callable<List<Integer>> {
 		}
 		position++;
 		}
+		
+		// Este return es lo que viajará de vuelta hasta el future.get()
 		return coincidencias;
 	}
 

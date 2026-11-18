@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -115,18 +116,55 @@ public class FASTAReaderThreads {
 	 *         pattern in the data.
 	 */
 	public List<Integer> search(byte[] pattern) {
-		//Inicialización de la lista
-		List<Integer> encontradas = new ArrayList<>();
+		//Lista donde guardaremos los "Future". Un Future es como un "resguardo" o "promesa" de que, cuando cada hilo termine, nos entregará su List<Integer>
+		List <Future<List<Integer>>> futures = new ArrayList<>();
 		
-		//Obtener número de procesadores dsel ordenador
+		//Obtener número de procesadores del ordenador
 		int cores = Runtime.getRuntime().availableProcessors();
-		
-		//Crear un ExecutorService con un número fijo de hebras
+		//Crear un ExecutorService con un número fijo de hebras (las obtenidas anteriormente)
 		ExecutorService executor = Executors.newFixedThreadPool(cores);
 		
+		//Calculamos el tamaño que le toca a cada hilo
+		int longitudTotal = this.content.length;
+		int tamañoHilo = longitudTotal/cores;
+		
+		for(int i=0; i < cores; i++) {
+			int lo = i*tamañoHilo; //Calculamos el inicio [lo, ... del segmento que le toca a la tarea 'i'
+			int hi; //Calculamos el final ..., hi) del segmento
+			
+			//Si es el ÚLTIMO hilo (cores - 1), le asignamos hasta el final exacto del array para no dejarnos posiciones sueltas si la división entera no fue exacta.
+			if(i == cores-1) {
+				hi = longitudTotal;
+			}else {
+				hi = (i+1)*tamañoHilo;
+			}
+			
+			//Creamos la tarea Callable encargada de buscar 'pattern' solo en el rango [lo, hi)
+			FASTASearchCallable task = new FASTASearchCallable(this, lo, hi, pattern);
+			
+			//executor.submit(task) entrega la tarea al pool de hilos:
+	        // - Arranca task.call() en SEGUNDO PLANO (sin bloquear este bucle).
+	        // - Nos devuelve inmediatamente un ticket (Future) que guardamos en la lista
+			futures.add(executor.submit(task));
+		}
+		
+		//Creamos lista definitiva donde se juntarán todos las posiciones encontradas por los hilos
+		List<Integer> results = new ArrayList<>();
+		
+		for(Future<List<Integer>> future: futures) {
+			try {
+				//future.get() es como ir con el ticket a recoger el pedido:
+                // - Si el hilo aún no terminó su call(), PAUSA aquí hasta que acabe.
+                // - Cuando termina, extrae la List<Integer> devuelta por call() y con addAll() la volcamos en "results"
+				results.addAll(future.get());
+			} catch (InterruptedException | ExecutionException e) {
+				e.printStackTrace();
+			}
+		}
+	
 		//Cerrar ExecutorService
 		executor.shutdown();
-		return encontradas;
+		return results;
 	}
 
 	public static void main(String[] args) {
